@@ -7,7 +7,8 @@ import os
 from collections import deque
 
 def createGraph(json_address):
-    f = open('../datas/' + json_address, 'r')
+    #print(json_address)
+    f = open('../datas/' + json_address, 'r', errors='ignore')
     strData = f.read()
 
     data = json.loads(strData)
@@ -53,7 +54,7 @@ def createGraph(json_address):
 # generate degrees
 def histGraph(g):
     degrees = g.vs.degree()
-    print(degrees)
+    #print(degrees)
     degrees_log = [log(degree + 1) for degree in degrees]
 
 #    plt.hist(degrees_log, log=True, alpha=0.5)
@@ -74,20 +75,30 @@ def bfs(graph, source):
     
     bfs_deque = deque([source])
     while(len(bfs_deque)):
-        v = bfs_list.popleft()
+        v = bfs_deque.popleft()
         for u in graph.vs.find(v).neighbors():
             if dist[u.index] == -1:
                 dist[u.index] = dist[v] + 1
-                bfs_list.append(u.index)
-
+                bfs_deque.append(u.index)
     return dist
 
 def histDistance(graph):
-    for v in graph.vs:
-        dist = bfs(graph, v.index)
+    n = len(graph.vs.degree())
+    hist = [0] * n;
+    for ind in range(0, n):
+        dist = bfs(graph, ind)
+        for d in dist:
+            if not d == -1:
+                hist[d] = hist[d] + 1
+    hist = [x / (n*n) for x in hist]
+    plt.plot(range(0, 9), hist[0:9])
+    print(hist)
 
-for file_addr in os.listdir('datas/'):
-    g = createGraph(file_addr)
-    histGraph(g)
+for file_addr in os.listdir('../datas/'):
+    if not file_addr.startswith('.'):
+        g = createGraph(file_addr)
+        #histGraph(g)
+        #print("start hist distance: " + file_addr)
+        histDistance(g)
 
 plt.show()
